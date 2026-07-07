@@ -9,7 +9,10 @@ using UnityEngine.UI;
 public class GateHUD : MonoBehaviour
 {
     [Header("Data Sources")]
+    [Tooltip("Assign either a GateController or a SmartGateController here.")]
     public GateController gateController;
+    [Tooltip("Assign a SmartGateController if using the enhanced gate system.")]
+    public SmartGateController smartGateController;
     public GateHUDData hudData;
 
     [Header("Status Row")]
@@ -97,9 +100,13 @@ public class GateHUD : MonoBehaviour
 
     private void RefreshGateStatus()
     {
-        if (gateController == null) return;
+        // Prefer SmartGateController if assigned; fall back to legacy GateController
+        bool hasController = smartGateController != null || gateController != null;
+        if (!hasController) return;
 
-        _isGateOpen = gateController.IsOpen;
+        _isGateOpen = smartGateController != null
+            ? smartGateController.IsOpen
+            : gateController.IsOpen;
 
         if (gateStatusValue != null)
         {
@@ -156,7 +163,7 @@ public class GateHUD : MonoBehaviour
         hudData.signalStrengthDbm  = Mathf.Clamp(hudData.signalStrengthDbm  + Random.Range(-2f,   2f),  -120f, 0f);
         hudData.temperatureCelsius = hudData.temperatureCelsius + Random.Range(-0.2f, 0.3f);
 
-        // Refresh gate status every simulation tick too
+        // Refresh gate status on every simulation tick
         RefreshGateStatus();
     }
 }
